@@ -2,10 +2,13 @@ package com.ecommerce.app.service;
 
 import java.util.List;
 
-public interface OrderService<T, R> {
-    List<R> getAll();
-    R getById(Long id);
-    R create(T request);
-    R update(Long id, T request);
+import com.ecommerce.app.dto.request.OrderRequest;
+import com.ecommerce.app.dto.response.OrderResponse;
+
+public interface OrderService {
+    List<OrderResponse> getAll();
+    OrderResponse getById(Long id);
+    OrderResponse create(OrderRequest request);
+    OrderResponse update(Long id, OrderRequest request);
     void delete(Long id);
 }
