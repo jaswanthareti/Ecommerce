@@ -20,7 +20,7 @@ public class OrderServiceImpl implements OrderService{
 
     private final OrderRepository orderRepository;
     @Override
-    public List<OrderResponse> getAll() {
+    public List<OrderResponse> getAllOrders() {
         // TODO Auto-generated method stub
         return orderRepository.findAll()
                     .stream()
@@ -29,33 +29,43 @@ public class OrderServiceImpl implements OrderService{
     }
 
     @Override
-    public OrderResponse getById(Long id) {
+    public OrderResponse getOrderById(Long id) {
         // TODO Auto-generated method stub
-        return OrderMapper.mapToOrderResponse(orderRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("No orders found with id "+id)));
+        Order order = orderRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("No orders found with id "+id));
+        return OrderMapper.mapToOrderResponse(order);
     }
 
     @Override
-    public OrderResponse create(OrderRequest orderRequest) {
+    public OrderResponse createOrder(OrderRequest orderRequest) {
         // TODO Auto-generated method stub
-        Order order = OrderMapper.mapToOrder(orderRequest);
-        return OrderMapper.mapToOrderResponse(orderRepository.save(order));
+        Order newOrder = OrderMapper.mapToOrder(orderRequest);
+        Order savedOrder = orderRepository.save(newOrder);
+        return OrderMapper.mapToOrderResponse(savedOrder);
+            
     }
 
     @Override
-    public OrderResponse update(Long id, OrderRequest orderRequest) {
+    public OrderResponse updateOrder(Long id, OrderRequest orderRequest) {
         // TODO Auto-generated method stub
-        Optional<Order> existingOrder = orderRepository.findById(id);
-        if (existingOrder.isEmpty())
-            throw new ResourceNotFoundException(String.format("Resource not found with id: %s",id));
-        Order orderToUpdate = OrderMapper.mapToOrder(orderRequest);
-        Order savedOrder = orderRepository.save(orderToUpdate);
+        Order existingOrder = orderRepository.findById(id)
+            .orElseThrow(()-> new ResourceNotFoundException(String.format("Resource not found with id: %s",id)));
+        existingOrder.setUserId(orderRequest.userId());
+        existingOrder.setTotalAmount(orderRequest.totalAmount());
+        existingOrder.setStatus(orderRequest.status());
+        Order savedOrder = orderRepository.save(existingOrder);
         return OrderMapper.mapToOrderResponse(savedOrder);
     }
 
     @Override
-    public void delete(Long id) {
+    public void deleteOrder(Long id) {
         // TODO Auto-generated method stub
-        orderRepository.deleteById(id);
+
+        Order existingOrder = orderRepository.findById(orderId)
+        .orElseThrow(() -> new ResourceNotFoundException(
+                String.format("Order not found with id: %s", orderId)));
+
+        orderRepository.delete(existingOrder);
+
     }
     
 }
