@@ -1,10 +1,29 @@
 package com.ecommerce.app.exception;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.http.*;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String,String>> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex){
+        Map<String, String> errorMap = new HashMap<>();
+
+        ex.getBindingResult().getAllErrors().forEach(error -> {
+            var fieldName = ((FieldError) error).getField();
+            String value = error.getDefaultMessage();
+            errorMap.put(fieldName, value);
+        });
+
+        return new ResponseEntity<>(errorMap, HttpStatus.BAD_REQUEST);
+    }
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<String> handleNotFound(ResourceNotFoundException ex) {

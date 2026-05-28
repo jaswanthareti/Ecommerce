@@ -9,7 +9,7 @@ import com.ecommerce.app.entity.Order;
 public class OrderMapper {
     public static Order mapToOrder(OrderRequest orderRequest){
         return Order.builder()
-                .userId(orderRequest.userId())
+                .userId(Long.parseLong(orderRequest.userId()))
                 .totalAmount(orderRequest.totalAmount())
                 .status(orderRequest.status())
                 .build();

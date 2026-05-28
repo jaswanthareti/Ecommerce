@@ -1,7 +1,7 @@
 package com.ecommerce.app.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
@@ -39,6 +39,7 @@ public class OrderServiceImpl implements OrderService{
     public OrderResponse createOrder(OrderRequest orderRequest) {
         // TODO Auto-generated method stub
         Order newOrder = OrderMapper.mapToOrder(orderRequest);
+        newOrder.setOrderDate(LocalDateTime.now());
         Order savedOrder = orderRepository.save(newOrder);
         return OrderMapper.mapToOrderResponse(savedOrder);
             
@@ -49,7 +50,7 @@ public class OrderServiceImpl implements OrderService{
         // TODO Auto-generated method stub
         Order existingOrder = orderRepository.findById(orderId)
             .orElseThrow(()-> new ResourceNotFoundException(String.format("Resource not found with id: %s",orderId)));
-        existingOrder.setUserId(orderRequest.userId());
+        existingOrder.setUserId(Long.parseLong(orderRequest.userId()));
         existingOrder.setTotalAmount(orderRequest.totalAmount());
         existingOrder.setStatus(orderRequest.status());
         Order savedOrder = orderRepository.save(existingOrder);
