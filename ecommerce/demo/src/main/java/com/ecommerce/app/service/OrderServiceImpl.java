@@ -45,10 +45,10 @@ public class OrderServiceImpl implements OrderService{
     }
 
     @Override
-    public OrderResponse updateOrder(Long id, OrderRequest orderRequest) {
+    public OrderResponse updateOrder(Long orderId, OrderRequest orderRequest) {
         // TODO Auto-generated method stub
-        Order existingOrder = orderRepository.findById(id)
-            .orElseThrow(()-> new ResourceNotFoundException(String.format("Resource not found with id: %s",id)));
+        Order existingOrder = orderRepository.findById(orderId)
+            .orElseThrow(()-> new ResourceNotFoundException(String.format("Resource not found with id: %s",orderId)));
         existingOrder.setUserId(orderRequest.userId());
         existingOrder.setTotalAmount(orderRequest.totalAmount());
         existingOrder.setStatus(orderRequest.status());
@@ -57,7 +57,7 @@ public class OrderServiceImpl implements OrderService{
     }
 
     @Override
-    public void deleteOrder(Long id) {
+    public void deleteOrder(Long orderId) {
         // TODO Auto-generated method stub
 
         Order existingOrder = orderRepository.findById(orderId)
