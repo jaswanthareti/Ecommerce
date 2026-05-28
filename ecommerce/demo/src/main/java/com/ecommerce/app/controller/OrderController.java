@@ -34,17 +34,17 @@ public class OrderController {
 
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{orderId}")
     public ResponseEntity<OrderResponse> getOrderById(@PathVariable Long orderId){
         return ResponseEntity.ok(orderService.getOrderById(orderId));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{orderId}")
     public ResponseEntity<OrderResponse> updateOrder(@PathVariable Long orderId, @Valid @RequestBody OrderRequest orderRequest){
         return ResponseEntity.ok(orderService.updateOrder(orderId, orderRequest));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{orderId}")
     public ResponseEntity<String> deleteOrder(@PathVariable Long orderId){
         orderService.deleteOrder(orderId);
         return ResponseEntity.noContent().build();
