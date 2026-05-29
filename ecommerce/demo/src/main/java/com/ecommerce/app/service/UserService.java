@@ -2,10 +2,13 @@ package com.ecommerce.app.service;
 
 import java.util.List;
 
-public interface UserService<T, R> {
-    List<R> getAll();
-    R getById(Long id);
-    R create(T request);
-    R update(Long id, T request);
-    void delete(Long id);
+import com.ecommerce.app.dto.request.UserRequest;
+import com.ecommerce.app.dto.response.UserResponse;
+
+public interface UserService {
+    List<UserResponse> getAllUsers();
+    UserResponse getUserById(Long userId);
+    UserResponse createUser(UserRequest userRequest);
+    UserResponse updateUser(Long userId, UserRequest userRequest);
+    void deleteUser(Long userId);
 }
