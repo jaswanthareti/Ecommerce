@@ -2,10 +2,13 @@ package com.ecommerce.app.service;
 
 import java.util.List;
 
+import com.ecommerce.app.dto.request.ProductRequest;
+import com.ecommerce.app.dto.response.ProductResponse;
+
 public interface ProductService<T, R> {
-    List<R> getAll();
-    R getById(Long id);
-    R create(T request);
-    R update(Long id, T request);
-    void delete(Long id);
+    List<ProductResponse> getAllProducts();
+    ProductResponse getProductById(Long id);
+    ProductResponse createProduct(ProductRequest request);
+    ProductResponse updateProduct(Long ProductId, ProductRequest ProductRequest);
+    void deleteProduct(Long ProductId);
 }
