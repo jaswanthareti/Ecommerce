@@ -31,8 +31,8 @@ public class OrderServiceImpl implements OrderService{
     @Override
     public OrderResponse getOrderById(Long id) {
         // TODO Auto-generated method stub
-        Order order = orderRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("No orders found with id "+id));
-        return OrderMapper.mapToOrderResponse(order);
+        Order fetchedOrder = orderRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("No orders found with id "+id));
+        return OrderMapper.mapToOrderResponse(fetchedOrder);
     }
 
     @Override
