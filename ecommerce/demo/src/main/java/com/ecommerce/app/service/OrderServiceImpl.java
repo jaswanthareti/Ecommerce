@@ -1,6 +1,5 @@
 package com.ecommerce.app.service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -14,7 +13,9 @@ import com.ecommerce.app.repository.OrderRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService{
@@ -22,15 +23,19 @@ public class OrderServiceImpl implements OrderService{
     private final OrderRepository orderRepository;
     @Override
     public List<OrderResponse> getAllOrders() {
-        return orderRepository.findAll()
+        
+        List<OrderResponse> orderResponses = orderRepository.findAll()
         .stream()
         .map(OrderMapper::mapToOrderResponse)
         .toList();
+        log.info("Retrieved all orders. Count = {}", orderResponses.size());
+        return orderResponses;
     }
 
     @Override
     public OrderResponse getOrderById(Long orderId) {
         Order fetchedOrder = getOrderEntity(orderId);
+        log.info("Retrieved order succeesfully. orderId={}", orderId);
         return OrderMapper.mapToOrderResponse(fetchedOrder);
     }
 
@@ -39,6 +44,7 @@ public class OrderServiceImpl implements OrderService{
     public OrderResponse createOrder(OrderRequest orderRequest) {        
         Order newOrder = OrderMapper.mapToOrder(orderRequest);
         Order savedOrder = orderRepository.save(newOrder);
+        log.info("Order created successfully. orderId={} userId={}", savedOrder.getId(), savedOrder.getUserId());
         return OrderMapper.mapToOrderResponse(savedOrder);
             
     }
@@ -47,10 +53,12 @@ public class OrderServiceImpl implements OrderService{
     @Override
     public OrderResponse updateOrder(Long orderId, OrderRequest orderRequest) {
         Order existingOrder = getOrderEntity(orderId);
+        log.info("Updating order. orderId={}", existingOrder.getId());
         existingOrder.setUserId(orderRequest.userId());
         existingOrder.setTotalAmount(orderRequest.totalAmount());
         existingOrder.setStatus(orderRequest.status());
         Order savedOrder = orderRepository.save(existingOrder);
+        log.info("Order updated successfully. orderId={}",savedOrder.getId());
         return OrderMapper.mapToOrderResponse(savedOrder);
     }
 
@@ -58,13 +66,17 @@ public class OrderServiceImpl implements OrderService{
     @Override
     public void deleteOrder(Long orderId) {
         Order existingOrder = getOrderEntity(orderId);
+        log.info("Deleting order. orderId={}", existingOrder.getId());
         orderRepository.delete(existingOrder);
-
+        log.info("Order deleted successfully. orderId={}", existingOrder.getId());
     }
 
     private Order getOrderEntity(Long orderId){
         return orderRepository.findById(orderId)
-            .orElseThrow(()-> new ResourceNotFoundException(String.format("Resource not found with id: %s",orderId)));
+            .orElseThrow(()-> {
+                log.info("Order not found. orderId={}",orderId);
+                return new ResourceNotFoundException(String.format("Resource not found with id: %s",orderId));
+            });
     }
     
 }
