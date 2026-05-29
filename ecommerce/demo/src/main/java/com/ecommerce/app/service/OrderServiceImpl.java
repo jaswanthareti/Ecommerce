@@ -12,6 +12,7 @@ import com.ecommerce.app.exception.ResourceNotFoundException;
 import com.ecommerce.app.mapper.OrderMapper;
 import com.ecommerce.app.repository.OrderRepository;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -21,52 +22,49 @@ public class OrderServiceImpl implements OrderService{
     private final OrderRepository orderRepository;
     @Override
     public List<OrderResponse> getAllOrders() {
-        // TODO Auto-generated method stub
         return orderRepository.findAll()
-                    .stream()
-                    .map(OrderMapper::mapToOrderResponse)
-                    .toList();
+        .stream()
+        .map(OrderMapper::mapToOrderResponse)
+        .toList();
     }
 
     @Override
-    public OrderResponse getOrderById(Long id) {
-        // TODO Auto-generated method stub
-        Order fetchedOrder = orderRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("No orders found with id "+id));
+    public OrderResponse getOrderById(Long orderId) {
+        Order fetchedOrder = getOrderEntity(orderId);
         return OrderMapper.mapToOrderResponse(fetchedOrder);
     }
 
+    @Transactional
     @Override
-    public OrderResponse createOrder(OrderRequest orderRequest) {
-        // TODO Auto-generated method stub
+    public OrderResponse createOrder(OrderRequest orderRequest) {        
         Order newOrder = OrderMapper.mapToOrder(orderRequest);
-        newOrder.setOrderDate(LocalDateTime.now());
         Order savedOrder = orderRepository.save(newOrder);
         return OrderMapper.mapToOrderResponse(savedOrder);
             
     }
 
+    @Transactional
     @Override
     public OrderResponse updateOrder(Long orderId, OrderRequest orderRequest) {
-        // TODO Auto-generated method stub
-        Order existingOrder = orderRepository.findById(orderId)
-            .orElseThrow(()-> new ResourceNotFoundException(String.format("Resource not found with id: %s",orderId)));
-        existingOrder.setUserId(Long.parseLong(orderRequest.userId()));
+        Order existingOrder = getOrderEntity(orderId);
+        existingOrder.setUserId(orderRequest.userId());
         existingOrder.setTotalAmount(orderRequest.totalAmount());
         existingOrder.setStatus(orderRequest.status());
         Order savedOrder = orderRepository.save(existingOrder);
         return OrderMapper.mapToOrderResponse(savedOrder);
     }
 
+    @Transactional
     @Override
     public void deleteOrder(Long orderId) {
-        // TODO Auto-generated method stub
-
-        Order existingOrder = orderRepository.findById(orderId)
-        .orElseThrow(() -> new ResourceNotFoundException(
-                String.format("Order not found with id: %s", orderId)));
-
+        Order existingOrder = getOrderEntity(orderId);
         orderRepository.delete(existingOrder);
 
+    }
+
+    private Order getOrderEntity(Long orderId){
+        return orderRepository.findById(orderId)
+            .orElseThrow(()-> new ResourceNotFoundException(String.format("Resource not found with id: %s",orderId)));
     }
     
 }

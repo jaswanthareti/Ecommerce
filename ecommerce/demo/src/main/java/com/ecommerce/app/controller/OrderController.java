@@ -1,5 +1,6 @@
 package com.ecommerce.app.controller;
 
+import java.net.URI;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
@@ -26,11 +27,8 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<OrderResponse> createOrder(@Valid @RequestBody OrderRequest orderRequest){
         OrderResponse createdOrder = orderService.createOrder(orderRequest);
-
-        return ResponseEntity
-                .status(201)
-                .header("Location","api/orders/"+createdOrder.id())
-                .body(createdOrder);
+        URI location = URI.create("/api/v1/orders"+createdOrder.id());
+        return ResponseEntity.created(location).body(createdOrder);
 
     }
 
@@ -45,7 +43,7 @@ public class OrderController {
     }
 
     @DeleteMapping("/{orderId}")
-    public ResponseEntity<String> deleteOrder(@PathVariable Long orderId){
+    public ResponseEntity<Void> deleteOrder(@PathVariable Long orderId){
         orderService.deleteOrder(orderId);
         return ResponseEntity.noContent().build();
     }

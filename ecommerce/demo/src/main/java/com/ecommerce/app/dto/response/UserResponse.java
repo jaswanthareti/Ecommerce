@@ -8,7 +8,7 @@ import jakarta.validation.constraints.Pattern;
 
 public record UserResponse(
 
-        Long Id,
+        Long id,
 
         @NotBlank(message = "Name cannot be blank")
         String name,

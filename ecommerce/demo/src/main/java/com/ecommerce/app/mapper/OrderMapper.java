@@ -9,13 +9,13 @@ import com.ecommerce.app.entity.Order;
 public class OrderMapper {
     public static Order mapToOrder(OrderRequest orderRequest){
         return Order.builder()
-                .userId(Long.parseLong(orderRequest.userId()))
+                .userId(orderRequest.userId())
                 .totalAmount(orderRequest.totalAmount())
                 .status(orderRequest.status())
                 .build();
     }
 
-    public static OrderResponse mapToOrderResponse(Order optional){
-        return new OrderResponse(optional.getId(), optional.getUserId(), optional.getOrderDate(), optional.getTotalAmount(), optional.getStatus());
+    public static OrderResponse mapToOrderResponse(Order order){
+        return new OrderResponse(order.getId(), order.getUserId(), order.getOrderDate(), order.getTotalAmount(), order.getStatus());
     }
 }
