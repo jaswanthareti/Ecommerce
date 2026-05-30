@@ -11,22 +11,26 @@ import com.ecommerce.app.service.ProductService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
-@RequestMapping("/api/products")
+@RequestMapping("/api/v1//products")
 @RequiredArgsConstructor
 public class ProductController {
     private final ProductService productService;
 
     @GetMapping
     public ResponseEntity<List<ProductResponse>> getAllProducts(){
+        log.info("Received request: GET /api/v1/products");
         return ResponseEntity.ok(productService.getAllProducts());
     }
 
     @PostMapping
     public ResponseEntity<ProductResponse> createProduct(@Valid @RequestBody ProductRequest productRequest){
+        log.info("Received request: CREATE product request");
         ProductResponse createdProduct = productService.createProduct(productRequest);
-
+        log.info("Product created successfully. productId");
         return ResponseEntity
                 .status(201)
                 .header("Location","api/products/"+createdProduct.id())
