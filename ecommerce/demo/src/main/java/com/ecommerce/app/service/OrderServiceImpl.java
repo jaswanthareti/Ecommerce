@@ -2,6 +2,8 @@ package com.ecommerce.app.service;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.ecommerce.app.dto.request.OrderRequest;
@@ -21,14 +23,19 @@ import lombok.extern.slf4j.Slf4j;
 public class OrderServiceImpl implements OrderService{
 
     private final OrderRepository orderRepository;
+
     @Override
-    public List<OrderResponse> getAllOrders() {
-        
-        List<OrderResponse> orderResponses = orderRepository.findAll()
-        .stream()
-        .map(OrderMapper::mapToOrderResponse)
-        .toList();
-        log.info("Retrieved all orders. Count = {}", orderResponses.size());
+    public Page<OrderResponse> getAllOrders(Pageable pageable) {
+        log.info("action=getAllOrders status=started page={} size={}",
+                    pageable.getPageNumber(),
+                    pageable.getPageSize()
+        );
+        Page<OrderResponse> orderResponses = orderRepository.findAll(pageable)
+                                                .map(OrderMapper::mapToOrderResponse);
+        log.info("action=getAllOrders status=success totalElements={} totalPages={}",
+                    orderResponses.getNumberOfElements(),
+                    orderResponses.getTotalPages()
+        );
         return orderResponses;
     }
 
