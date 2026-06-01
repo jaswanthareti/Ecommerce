@@ -43,108 +43,129 @@ public class OrderController {
     private final OrderService orderService;
 
     /**
-     * Retrieves all orders in a paginated format.
-     * 
+     * Retrieves all orders in paginated format.
+     *
      * @param pageable pagination and sorting information
      * @return paginated order response
      */
-
     @GetMapping
     public ResponseEntity<Page<OrderResponse>> getAllOrders(
-        @PageableDefault(
-            size = 10, 
-            sort = "id", 
-            direction = Sort.Direction.ASC
-        ) Pageable pageable
-    ){
+            @PageableDefault(
+                    size = 10,
+                    sort = "id",
+                    direction = Sort.Direction.ASC
+            )
+            Pageable pageable
+    ) {
+
         log.info(
-            "action=getAllOrders status=started page={} size={} sort={}",
-            pageable.getPageNumber(), 
-            pageable.getPageSize(),
-            pageable.getSort()
+                "action=getAllOrders status=request_received page={} size={} sort={}",
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                pageable.getSort()
         );
 
-        final Page<OrderResponse> orders = orderService.getAllOrders(pageable);
-        log.info(
-            "action=getAllOrders status=success totalElements={} totalPages={}",
-                    orders.getTotalElements(),
-                    orders.getTotalPages()
-        );
-        
+        final Page<OrderResponse> orders =
+                orderService.getAllOrders(pageable);
+
         return ResponseEntity.ok(orders);
     }
 
     /**
      * Creates a new order.
-     * 
-     * @param orderRequest request payload
-     * @return the created order details with location header
+     *
+     * @param orderRequest validated request payload
+     * @return created order response
      */
-
     @PostMapping
     public ResponseEntity<OrderResponse> createOrder(
-        @Valid @RequestBody OrderRequest orderRequest
-    ){
-        log.info("action=createOrder status=started userId={}",orderRequest.userId());
-        final OrderResponse createdOrder = orderService.createOrder(orderRequest);
-        log.info("action=createOrder status=success orderId={}",createdOrder.id());
-        URI location = URI.create("/api/v1/orders/" + createdOrder.id());
+            @Valid @RequestBody OrderRequest orderRequest
+    ) {
 
-        return ResponseEntity.created(location).body(createdOrder);
+        log.info(
+                "action=createOrder status=started userId={}",
+                orderRequest.userId()
+        );
+
+        final OrderResponse createdOrder =
+                orderService.createOrder(orderRequest);
+
+        log.info(
+                "action=createOrder status=success orderId={}",
+                createdOrder.id()
+        );
+
+        URI location =
+                URI.create("/api/v1/orders/" + createdOrder.id());
+
+        return ResponseEntity
+                .created(location)
+                .body(createdOrder);
     }
 
     /**
-     * Retrieves order by its identifier.
-     * 
-     * @param orderId unique order identifier
-     * @return the order details
+     * Retrieves order by identifier.
+     *
+     * @param orderId order identifier
+     * @return order details
      */
-
     @GetMapping("/{orderId}")
     public ResponseEntity<OrderResponse> getOrderById(
-        @PathVariable @Positive Long orderId
-    ){
-        log.info("action=getOrderById status=started orderId={}", orderId);
-        final OrderResponse order = orderService.getOrderById(orderId);
-        log.info("action=getOrderById status=success orderId={}", orderId);
+            @PathVariable @Positive Long orderId
+    ) {
+
+        log.info(
+                "action=getOrderById status=request_received orderId={}",
+                orderId
+        );
+
+        final OrderResponse order =
+                orderService.getOrderById(orderId);
 
         return ResponseEntity.ok(order);
     }
 
     /**
      * Updates an existing order.
-     * 
-     * @param orderId unique order identifier
-     * @param orderRequest request payload
-     * @return the updated order details
+     *
+     * @param orderId order identifier
+     * @param orderRequest updated request payload
+     * @return updated order response
      */
-
     @PutMapping("/{orderId}")
     public ResponseEntity<OrderResponse> updateOrder(
-        @PathVariable @Positive Long orderId, 
-        @Valid @RequestBody OrderRequest orderRequest
-    ){
-        log.info("action=updateOrder status=started orderId={}", orderId);
-        final OrderResponse updatedOrder = orderService.updateOrder(orderId, orderRequest);
-        log.info("action=updateOrder status=success orderId={}", updatedOrder.id());
+            @PathVariable @Positive Long orderId,
+            @Valid @RequestBody OrderRequest orderRequest
+    ) {
+
+        log.info(
+                "action=updateOrder status=request_received orderId={}",
+                orderId
+        );
+
+        final OrderResponse updatedOrder =
+                orderService.updateOrder(orderId, orderRequest);
 
         return ResponseEntity.ok(updatedOrder);
     }
 
     /**
-     * Deletes order.
-     * 
-     * @param orderId unique order identifier
-     * @return a response with no content
+     * Deletes order by identifier.
+     *
+     * @param orderId order identifier
+     * @return no content response
      */
-
     @DeleteMapping("/{orderId}")
     public ResponseEntity<Void> deleteOrder(
-        @PathVariable @Positive Long orderId
-    ){
-        log.info("action=deleteOrder status=started orderId={}", orderId);
+            @PathVariable @Positive Long orderId
+    ) {
+
+        log.info(
+                "action=deleteOrder status=request_received orderId={}",
+                orderId
+        );
+
         orderService.deleteOrder(orderId);
-        log.info("action=deleteOrder status=success orderId={}", orderId);
 
         return ResponseEntity.noContent().build();
     }

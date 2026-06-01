@@ -1,8 +1,12 @@
 package com.ecommerce.app.controller;
 
 import java.net.URI;
-import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -23,51 +27,150 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * REST controller for managing products.
+ *
+ * Provides endpoints for:
+ * - creating products
+ * - retrieving products
+ * - updating products
+ * - deleting products
+ */
+
+@RestController
+@RequestMapping(
+        value = "/api/v1/products",
+        produces = MediaType.APPLICATION_JSON_VALUE
+)
+@RequiredArgsConstructor
 @Slf4j
 @Validated
-@RestController
-@RequestMapping("/api/v1/products")
-@RequiredArgsConstructor
 public class ProductController {
+
     private final ProductService productService;
 
+    /**
+     * Retrieves all products in paginated format.
+     *
+     * @param pageable pagination details
+     * @return paginated products
+     */
     @GetMapping
-    public ResponseEntity<List<ProductResponse>> getAllProducts(){
-        log.info("action=getAllProducts status=started");
-        return ResponseEntity.ok(productService.getAllProducts());
+    public ResponseEntity<Page<ProductResponse>> getAllProducts(
+            @PageableDefault(
+                    size = 10,
+                    sort = "id",
+                    direction = Sort.Direction.ASC
+            )
+            Pageable pageable
+    ) {
+
+        log.info(
+                "action=getAllProducts status=request_received page={} size={} sort={}",
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                pageable.getSort()
+        );
+
+        final Page<ProductResponse> products =
+                productService.getAllProducts(pageable);
+
+        return ResponseEntity.ok(products);
     }
 
+    /**
+     * Creates a new product.
+     *
+     * @param productRequest validated request payload
+     * @return created product response
+     */
     @PostMapping
-    public ResponseEntity<ProductResponse> createProduct(@Valid @RequestBody ProductRequest productRequest){
-        log.info("action=createProduct status=started");
-        final ProductResponse createdProduct = productService.createProduct(productRequest);
-        log.info("action=createProduct status=success productId={}",createdProduct.id());
-        URI location = URI.create("/api/v1/products/" + createdProduct.id());
-        return ResponseEntity.created(location).body(createdProduct);
+    public ResponseEntity<ProductResponse> createProduct(
+            @Valid @RequestBody ProductRequest productRequest
+    ) {
 
+        log.info("action=createProduct status=started");
+
+        final ProductResponse createdProduct =
+                productService.createProduct(productRequest);
+
+        log.info(
+                "action=createProduct status=success productId={}",
+                createdProduct.id()
+        );
+
+        URI location =
+                URI.create("/api/v1/products/" + createdProduct.id());
+
+        return ResponseEntity
+                .created(location)
+                .body(createdProduct);
     }
 
+    /**
+     * Retrieves product by identifier.
+     *
+     * @param productId product identifier
+     * @return product details
+     */
     @GetMapping("/{productId}")
-    public ResponseEntity<ProductResponse> getProductById(@PathVariable @Positive Long productId){
-        log.info("action=getProductById status=started productId={}",productId);
-        final ProductResponse product = productService.getProductById(productId);
-        log.info("action=getProductById status=success productId={}",productId);
+    public ResponseEntity<ProductResponse> getProductById(
+            @PathVariable @Positive Long productId
+    ) {
+
+        log.info(
+                "action=getProductById status=request_received productId={}",
+                productId
+        );
+
+        final ProductResponse product =
+                productService.getProductById(productId);
+
         return ResponseEntity.ok(product);
     }
 
+    /**
+     * Updates existing product.
+     *
+     * @param productId product identifier
+     * @param productRequest updated request payload
+     * @return updated product response
+     */
     @PutMapping("/{productId}")
-    public ResponseEntity<ProductResponse> updateProduct(@PathVariable @Positive Long productId, @Valid @RequestBody ProductRequest productRequest){
-        log.info("action=updateProduct status=started productId={}", productId);
-        final ProductResponse updatedProduct = productService.updateProduct(productId, productRequest);
-        log.info("action=updateProduct status=success productId={}", updatedProduct.id());
+    public ResponseEntity<ProductResponse> updateProduct(
+            @PathVariable @Positive Long productId,
+            @Valid @RequestBody ProductRequest productRequest
+    ) {
+
+        log.info(
+                "action=updateProduct status=request_received productId={}",
+                productId
+        );
+
+        final ProductResponse updatedProduct =
+                productService.updateProduct(productId, productRequest);
+
         return ResponseEntity.ok(updatedProduct);
     }
 
+    /**
+     * Deletes product by identifier.
+     *
+     * @param productId product identifier
+     * @return no content response
+     */
     @DeleteMapping("/{productId}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable @Positive Long productId){
-        log.info("action=deleteProduct status=started productId={}",productId);
+    public ResponseEntity<Void> deleteProduct(
+            @PathVariable @Positive Long productId
+    ) {
+
+        log.info(
+                "action=deleteProduct status=request_received productId={}",
+                productId
+        );
+
         productService.deleteProduct(productId);
-        log.info("action=deleteProduct status=success productId={}",productId);
+
         return ResponseEntity.noContent().build();
     }
 }

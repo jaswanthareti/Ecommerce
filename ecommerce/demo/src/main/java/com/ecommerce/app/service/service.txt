@@ -1,0 +1,579 @@
+package com.ecommerce.app.service;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.ecommerce.app.dto.request.OrderRequest;
+import com.ecommerce.app.dto.response.OrderResponse;
+import com.ecommerce.app.entity.Order;
+import com.ecommerce.app.exception.ResourceNotFoundException;
+import com.ecommerce.app.mapper.OrderMapper;
+import com.ecommerce.app.repository.OrderRepository;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+
+/**
+ * Service implementation for order management operations.
+ */
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class OrderServiceImpl implements OrderService{
+
+    private final OrderRepository orderRepository;
+
+    @Transactional(readOnly = true)
+    @Override
+    public Page<OrderResponse> getAllOrders(Pageable pageable) {
+        log.info("action=getAllOrders status=started page={} size={}",
+                    pageable.getPageNumber(),
+                    pageable.getPageSize()
+        );
+        Page<OrderResponse> orderResponses = orderRepository.findAll(pageable)
+                                                .map(OrderMapper::mapToOrderResponse);
+        log.info("action=getAllOrders status=success totalElements={} totalPages={}",
+                    orderResponses.getTotalElements(),
+                    orderResponses.getTotalPages()
+        );
+        return orderResponses;
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public OrderResponse getOrderById(Long orderId) {
+        Order fetchedOrder = getOrderEntity(orderId);
+        log.info(
+            "action=getOrderById status=success orderId={}",
+            orderId
+        );
+
+        return OrderMapper.mapToOrderResponse(fetchedOrder);
+    }
+
+    @Transactional
+    @Override
+    public OrderResponse createOrder(OrderRequest orderRequest) {     
+        log.info(
+            "action=createProduct status=started userId={}",
+            orderRequest.userId()
+        );
+        Order newOrder = OrderMapper.mapToOrder(orderRequest);
+        Order savedOrder = orderRepository.save(newOrder);
+        
+        log.info(
+            "action=createOrder status=success orderId={} userId={}",
+            savedOrder.getId(),
+            savedOrder.getUserId()
+        );
+
+        return OrderMapper.mapToOrderResponse(savedOrder);
+            
+    }
+
+    @Transactional
+    @Override
+    public OrderResponse updateOrder(
+        Long orderId, 
+        OrderRequest orderRequest
+        ) {
+        Order existingOrder = getOrderEntity(orderId);
+        log.info(
+            "action=updateOrder status=started orderId={}",
+            existingOrder.getId()
+        );
+        
+        existingOrder.setUserId(orderRequest.userId());
+        existingOrder.setTotalAmount(orderRequest.totalAmount());
+        existingOrder.setStatus(orderRequest.status());
+        Order savedOrder = orderRepository.save(existingOrder);
+        log.info(
+            "action=updateOrder status=success orderId={}",
+            existingOrder.getId()
+        );
+        return OrderMapper.mapToOrderResponse(savedOrder);
+    }
+
+    @Transactional
+    @Override
+    public void deleteOrder(Long orderId) {
+        Order existingOrder = getOrderEntity(orderId);
+        log.info(
+            "action=deleteOrder status=started orderId={}",
+            existingOrder.getId()
+        );
+        
+        orderRepository.delete(existingOrder);
+        log.info(
+            "action=deleteOrder status=success orderId={}",
+            existingOrder.getId()
+        );
+        
+    }
+
+    private Order getOrderEntity(Long orderId){
+        return orderRepository.findById(orderId)
+            .orElseThrow(()-> {
+                log.warn("Order not found. orderId={}",orderId);
+                return new ResourceNotFoundException(String.format("Order not found with id: %s",orderId));
+            });
+    }
+    
+}
+package com.ecommerce.app.service;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import com.ecommerce.app.dto.request.OrderRequest;
+import com.ecommerce.app.dto.response.OrderResponse;
+
+/**
+ * Service interface for order management operations.
+ */
+public interface OrderService {
+
+    /**
+     * Retrieves paginated orders.
+     *
+     * @param pageable pagination details
+     * @return paginated order response
+     */
+    Page<OrderResponse> getAllOrders(Pageable pageable);
+
+    /**
+     * Retrieves order by identifier.
+     *
+     * @param orderId order identifier
+     * @return order details
+     */
+    OrderResponse getOrderById(Long orderId);
+
+    /**
+     * Creates new order.
+     *
+     * @param request request payload
+     * @return created order
+     */
+    OrderResponse createOrder(OrderRequest request);
+
+    /**
+     * Updates existing order.
+     *
+     * @param orderId order identifier
+     * @param request updated payload
+     * @return updated order
+     */
+    OrderResponse updateOrder(
+        Long orderId,
+        OrderRequest request
+    );
+
+    /**
+     * Deletes order by identifier.
+     *
+     * @param orderId order identifier
+     */
+    void deleteOrder(Long orderId);
+}package com.ecommerce.app.service;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.ecommerce.app.dto.request.ProductRequest;
+import com.ecommerce.app.dto.response.ProductResponse;
+import com.ecommerce.app.entity.Product;
+import com.ecommerce.app.exception.ResourceNotFoundException;
+import com.ecommerce.app.mapper.ProductMapper;
+import com.ecommerce.app.repository.ProductRepository;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * Service implementation for product management operations.
+ */
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class ProductServiceImpl implements ProductService {
+
+    private final ProductRepository productRepository;
+
+    @Transactional(readOnly = true)
+    @Override
+    public Page<ProductResponse> getAllProducts(Pageable pageable) {
+    
+        log.info(
+            "action=getAllProducts status=started page={} size={}",
+            pageable.getPageNumber(),
+            pageable.getPageSize()
+        );
+    
+        Page<ProductResponse> products =
+                productRepository.findAll(pageable)
+                        .map(ProductMapper::mapToProductResponse);
+    
+        log.info(
+            "action=getAllProducts status=success totalElements={} totalPages={}",
+            products.getTotalElements(),
+            products.getTotalPages()
+        );
+    
+        return products;
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public ProductResponse getProductById(Long productId) {
+        Product fetchedProduct = getProductEntity(productId);
+        
+        log.info(
+            "action=getProductById status=success productId={}",
+            fetchedProduct.getId()
+        );
+
+        return ProductMapper.mapToProductResponse(fetchedProduct);
+    }
+
+    
+    /**
+     * Creates a new product.
+     *
+     * Request body is validated before processing.
+     *
+     * @param productRequest validated product payload
+     * @return created product details
+     */
+
+    @Transactional
+    @Override
+    public ProductResponse createProduct(ProductRequest productRequest) {
+        Product newProduct = ProductMapper.mapToProduct(productRequest);
+        Product createdProduct = productRepository.save(newProduct);
+        log.info(
+            "action=createProduct status=success productId={}",
+            createdProduct.getId()
+        );
+        return ProductMapper.mapToProductResponse(createdProduct);
+    }
+
+    @Transactional
+    @Override
+    public ProductResponse updateProduct(
+        Long productId, 
+        ProductRequest productRequest
+    ) {
+        Product existingProduct = getProductEntity(productId);
+        log.info(
+            "action=updateProduct status=started productId={}",
+            productId
+        );
+        
+        existingProduct.setName(productRequest.name());
+        existingProduct.setDescription(productRequest.description());
+        existingProduct.setPrice(productRequest.price());
+        existingProduct.setStockQuantity(productRequest.stockQuantity());
+        existingProduct.setCategory(productRequest.category());
+
+        Product savedProduct = productRepository.save(existingProduct);
+        log.info(
+            "action=updateProduct status=success productId={}",
+            savedProduct.getId()
+        );
+        
+        return ProductMapper.mapToProductResponse(savedProduct);
+        
+    }
+
+    @Transactional
+    @Override
+    public void deleteProduct(Long productId) {
+        Product existingProduct = getProductEntity(productId);
+        log.info(
+            "action=deleteProduct status=started productId={}",
+            productId
+        );
+        
+        productRepository.delete(existingProduct);
+        log.info(
+            "action=deleteProduct status=success productId={}",
+            productId
+        );
+        
+        
+    }
+
+    private Product getProductEntity(Long productId){
+        return productRepository.findById(productId)
+                .orElseThrow(
+                    ()-> {
+                        
+                        log.warn(
+                            "action=getProductEntity status=failed reason=product_not_found productId={}",productId
+                        );
+
+                        return new ResourceNotFoundException(String.format("Product not found with id: %s", productId));
+                    });
+    }
+    
+}
+package com.ecommerce.app.service;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import com.ecommerce.app.dto.request.ProductRequest;
+import com.ecommerce.app.dto.response.ProductResponse;
+
+/**
+ * Service interface for product management operations.
+ */
+public interface ProductService {
+
+    /**
+     * Retrieves paginated products.
+     *
+     * @param pageable pagination details
+     * @return paginated products
+     */
+    Page<ProductResponse> getAllProducts(Pageable pageable);
+
+    /**
+     * Retrieves product by identifier.
+     *
+     * @param productId product identifier
+     * @return product details
+     */
+    ProductResponse getProductById(Long productId);
+
+    /**
+     * Creates new product.
+     *
+     * @param request request payload
+     * @return created product
+     */
+    ProductResponse createProduct(ProductRequest request);
+
+    /**
+     * Updates existing product.
+     *
+     * @param productId product identifier
+     * @param request updated payload
+     * @return updated product
+     */
+    ProductResponse updateProduct(Long productId,
+                                  ProductRequest request);
+
+    /**
+     * Deletes product by identifier.
+     *
+     * @param productId product identifier
+     */
+    void deleteProduct(Long productId);
+}package com.ecommerce.app.service;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.ecommerce.app.dto.request.UserRequest;
+import com.ecommerce.app.dto.response.UserResponse;
+import com.ecommerce.app.entity.User;
+import com.ecommerce.app.exception.ResourceNotFoundException;
+import com.ecommerce.app.mapper.UserMapper;
+import com.ecommerce.app.repository.UserRepository;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * Service implementation for user management operations.
+ */
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class UserServiceImpl implements UserService {
+
+    private final UserRepository userRepository;
+
+    
+    /**
+     * Retrieves all users in paginated format.
+     *
+     * @param pageable pagination and sorting details
+     * @return paginated user response
+     */
+
+    @Transactional(readOnly = true)
+    @Override
+    public Page<UserResponse> getAllUsers(Pageable pageable) {
+    
+        log.info(
+            "action=getAllUsers status=started page={} size={}",
+            pageable.getPageNumber(),
+            pageable.getPageSize()
+        );
+    
+        Page<UserResponse> users =
+                userRepository.findAll(pageable)
+                        .map(UserMapper::mapToUserResponse);
+    
+        log.info(
+            "action=getAllUsers status=success totalElements={} totalPages={}",
+            users.getTotalElements(),
+            users.getTotalPages()
+        );
+    
+        return users;
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public UserResponse getUserById(Long userId) {
+        User fetchedUser = getUserEntity(userId);
+        log.info(
+            "action=getUserById status=success userId={}",
+            fetchedUser.getId()
+        );
+        
+        return UserMapper.mapToUserResponse(fetchedUser);
+    }
+
+    @Transactional
+    @Override
+    public UserResponse createUser(UserRequest userRequest) {        
+        log.info(
+            "action=createUser status=started email={}",
+            userRequest.email()
+        );
+
+        User user = UserMapper.mapToUser(userRequest);
+        User savedUser = userRepository.save(user);
+        log.info(
+            "action=createUser status=success userId={}",
+            savedUser.getId()
+        );
+        
+        return UserMapper.mapToUserResponse(savedUser);
+    }
+
+    @Transactional
+    @Override
+    public UserResponse updateUser(
+        Long userId, 
+        UserRequest userRequest
+    ) {
+        User existingUser = getUserEntity(userId);
+        log.info(
+            "action=updateUser status=started userId={}",
+            userId
+        );
+        
+        existingUser.setName(userRequest.name());
+        existingUser.setEmail(userRequest.email());
+        existingUser.setPhone(userRequest.phone());
+        existingUser.setAddress(userRequest.address());
+        User savedUser = userRepository.save(existingUser);
+        log.info(
+            "action=updateUser status=success userId={}",
+            userId
+        );
+        
+        return UserMapper.mapToUserResponse(savedUser);
+    }
+
+    @Transactional
+    @Override
+    public void deleteUser(Long userId) {
+        User existingUser = getUserEntity(userId);
+        log.info(
+            "action=deleteUser status=started userId={}",
+            userId
+        );
+        
+        userRepository.delete(existingUser);
+        log.info(
+            "action=deleteUser status=success userId={}",
+            userId
+        );
+        
+    }
+
+    private User getUserEntity(Long userId){
+        return userRepository.findById(userId)
+                .orElseThrow(()->{
+                    log.warn(
+                        "action=getUserEntity status=failed reason=user_not_found userId={}",
+                        userId
+                    );
+
+                    return new ResourceNotFoundException(String.format("User not found with id %s",userId));
+                    }
+                );
+    }
+    
+}
+package com.ecommerce.app.service;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import com.ecommerce.app.dto.request.UserRequest;
+import com.ecommerce.app.dto.response.UserResponse;
+
+/**
+ * Service interface for user management operations.
+ */
+public interface UserService {
+
+    /**
+     * Retrieves all users in paginated format.
+     *
+     * @param pageable pagination and sorting details
+     * @return paginated user response
+     */
+    Page<UserResponse> getAllUsers(Pageable pageable);
+
+    /**
+     * Retrieves user by identifier.
+     *
+     * @param userId unique user identifier
+     * @return user details
+     */
+    UserResponse getUserById(Long userId);
+
+    /**
+     * Creates a new user.
+     *
+     * @param userRequest validated user payload
+     * @return created user details
+     */
+    UserResponse createUser(UserRequest userRequest);
+
+    /**
+     * Updates an existing user.
+     *
+     * @param userId unique user identifier
+     * @param userRequest updated user payload
+     * @return updated user details
+     */
+    UserResponse updateUser(
+            Long userId,
+            UserRequest userRequest
+    );
+
+    /**
+     * Deletes user by identifier.
+     *
+     * @param userId unique user identifier
+     */
+    void deleteUser(Long userId);
+}
