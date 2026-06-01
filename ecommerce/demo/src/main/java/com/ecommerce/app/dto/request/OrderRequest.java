@@ -1,6 +1,7 @@
 package com.ecommerce.app.dto.request;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import com.ecommerce.app.enums.OrderStatus;
 
@@ -17,5 +18,7 @@ public record OrderRequest(
     BigDecimal totalAmount,
 
     @NotBlank(message = "Status cannot be blank")
-    OrderStatus status
+    OrderStatus status,
+
+    List<OrderItemRequest> orderItems
 ) {}
